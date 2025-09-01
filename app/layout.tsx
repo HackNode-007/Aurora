@@ -1,21 +1,20 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from "next"
+import { SessionProvider } from "next-auth/react"
+import "./globals.css"
+import Providers from "@/app/providers";
 
 export const metadata: Metadata = {
-  title: "Aurora",
-  description: "An ai and web-3 powered web-app that helps to report and resolve issue an get rewards on resolving issue listed on our website",
-};
+    title: "Aurora",
+    description:
+        "An ai and web-3 powered web-app that helps to report and resolve issue and get rewards on resolving issue listed on our website",
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body>
-        {children}
-      </body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en">
+            <body>
+                <Providers>{children}</Providers>
+            </body>
+        </html>
+    )
 }
