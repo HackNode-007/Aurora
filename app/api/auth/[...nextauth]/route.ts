@@ -5,6 +5,8 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcrypt"
 
+export const runtime = "nodejs"
+
 const handler = NextAuth({
     adapter: PrismaAdapter(prisma),
     providers: [
@@ -38,19 +40,36 @@ const handler = NextAuth({
         }),
     ],
     session: {
-        strategy: "jwt", // or "database" if you prefer
+        maxAge: 7 * 24 * 60 * 60,
+        strategy: "jwt",
     },
     callbacks: {
         async jwt({ token, user }) {
-            if (user) token.id = user.id
+            // Attach user id and profileCompleted to JWT
+            if (user) {
+                token.id = (user as any).id
+                token.profileCompleted = (user as any).profileCompleted ?? false
+            } else if (token?.sub) {
+                // Keep token.id and refresh profileCompleted if it's missing or false
+                try {
+                    const dbUser = await prisma.user.findUnique({ where: { id: token.sub } })
+                    token.profileCompleted = dbUser?.profileCompleted ?? false
+                    token.id = token.id ?? dbUser?.id
+                } catch {}
+            }
             return token
         },
         async session({ session, token }) {
             if (token) {
-                session.user.id = token.id as string
+                ;(session.user as any).id = token.id as string
+                ;(session.user as any).profileCompleted = (token as any).profileCompleted ?? false
             }
             return session
         },
+    },
+    pages: {
+        signIn: "/auth/login",
+        error: "/auth/login",
     },
     secret: process.env.NEXTAUTH_SECRET,
 })

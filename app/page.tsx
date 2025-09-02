@@ -1,10 +1,7 @@
-import LoginButtons from "@/app/LoginButtons"
-
 export default function HomePage() {
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center">
-            <h1 className="text-2xl font-bold mb-4">Auth Test</h1>
-            <LoginButtons />
-        </main>
+        <>
+            landing page
+        </>
     )
 }

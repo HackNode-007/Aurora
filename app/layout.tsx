@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
-import { SessionProvider } from "next-auth/react"
 import "./globals.css"
-import Providers from "@/app/providers";
+import Providers from "@/lib/providers";
 
 export const metadata: Metadata = {
     title: "Aurora",
