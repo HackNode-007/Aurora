@@ -32,14 +32,14 @@ const users = new Schema(
             default: null,
         },
         balance: {
-            type: Number,
-            default: 0,
-            min: 0,
+            type: Schema.Types.Decimal128,
+            default: 0.0,
+            min: 0.0,
         },
         lockedBalance: {
-            type: Number,
-            default: 0,
-            min: 0,
+            type: Schema.Types.Decimal128,
+            default: 0.0,
+            min: 0.0,
         },
         profileCompleted: {type: Boolean,
         default: false}
