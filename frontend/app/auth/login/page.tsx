@@ -18,7 +18,7 @@ export default function LoginPage() {
                {/*logo*/}
                 <div className="flex justify-center mb-8">
                     <div className="">
-
+                        hello ji
                     </div>
                 </div>
             </div>
