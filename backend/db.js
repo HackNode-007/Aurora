@@ -1,4 +1,5 @@
 const {Schema, default: mongoose} = require("mongoose")
+const ObjectId = Schema.Types.ObjectId;
 const users = new Schema({
     email: {
         type: String,
@@ -28,6 +29,7 @@ const users = new Schema({
     },
     location: {
         type: String,
+        required: true,
         default: null,
     },
     balance: {
@@ -48,7 +50,140 @@ const users = new Schema({
 { 
     timestamps: true 
 })
+
+const report = new Schema({
+    tittle: {
+        type: String,
+        required: true,
+    },
+    description: {
+        type: String,
+        required: true,
+    },
+    labels: {
+        type: [String],
+        required: true,
+    },
+    location: {
+        type: String,
+        required: true,
+    },
+    imageUrls: {
+        type: [String],
+        required: true,
+    },
+    urgency:{
+        type: String,
+        required:true,
+        enum: ['low', 'medium', 'high', 'critical'],
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'accepted','open' ,'responded', 'resolved', 'rejected'],
+        default: 'pending',
+    },
+    reportedBy:{
+        type: ObjectId,
+        required:true,
+    },
+    resolvedBy:{
+        type: ObjectId,
+        default:null,
+    },
+    resolvedOnDate:{
+        type:Date,
+    },
+    reward:{
+        type: Schema.Types.Decimal128,
+    },
+    upvotes:{
+        type:Number,
+        default: 0
+    }
+})
+
+const upvote = new Schema({
+    reportId:{
+        type: ObjectId,
+        required:true,
+    },
+    userId:{
+        type: ObjectId,
+        required:true,
+    }
+})
+
+const comment = new Schema({
+    reportId:{
+        type: ObjectId,
+        required:true,
+    },
+    userId:{
+        type: ObjectId,
+        required:true,
+    },
+    comment:{
+        type: String,
+        required:true,
+    },
+    dateRecorded:{
+        type:Date,
+        default: Date.now
+    },
+    isReplied:{
+        type:Boolean,
+        default:false
+    },
+    reply:{
+        type: String,
+        default:null
+    },
+    replyUserId:{
+        type: ObjectId,
+        default:null
+    }
+    
+})
+
+const response = new Schema({
+    reportId:{
+        type: ObjectId,
+        required:true,
+    },
+    userId:{
+        type: ObjectId,
+        required:true,
+    },
+    response:{
+        type: String,
+        required:true,
+    },
+    dateRecorded:{
+        type:Date,
+        default: Date.now
+    },
+    isAccepted:{
+        type:Boolean,
+        default:false,
+    },
+    imageUrls:{
+        type: [String],
+        required:true,
+    },
+},
+{ 
+   timestamps: true 
+})
+
 const userModel = mongoose.model('users',users)
+const reportModel = mongoose.model('reports',report)
+const responseModel = mongoose.model('responses',response)
+const upvoteModel = mongoose.model('upvotes',upvote)
+const commentModel = mongoose.model('comments',comment)
 module.exports = {
-    userModel
+    userModel,
+    reportModel,
+    responseModel,
+    upvoteModel,
+    commentModel
 }

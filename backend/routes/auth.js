@@ -11,7 +11,12 @@ authRouter.post('/register', async (req, res) => {
     const { email, password, username, phone } = req.body;
 
     try {
-        const data = await registerObject.parse({ email, password, username, phone });
+        const data =  registerObject.parse({
+            email, 
+            password,
+            username, 
+            phone 
+        });
 
         const hash = bcrypt.hashSync(password, saltRounds);
 
