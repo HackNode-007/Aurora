@@ -52,7 +52,7 @@ const users = new Schema({
 })
 
 const report = new Schema({
-    tittle: {
+    title: {
         type: String,
         required: true,
     },
