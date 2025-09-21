@@ -5,13 +5,15 @@ const userMiddleware = (req, res, next) => {
     try {
         const authHeader = req.headers["authorization"];
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({ message: "Authorization header missing or malformed" });
+            return res
+                .status(401)
+                .json({ message: "Authorization header missing or malformed" });
         }
 
         const token = authHeader.split(" ")[1];
 
         const decoded = jwt.verify(token, secret, {
-            ignoreExpiration: false
+            ignoreExpiration: false,
         });
 
         if (!decoded.userId || !decoded.email) {
@@ -19,8 +21,8 @@ const userMiddleware = (req, res, next) => {
         }
 
         req.user = {
-            id: decoded.userId,
-            email: decoded.email
+            userId: decoded.userId,
+            email: decoded.email,
         };
 
         return next();
@@ -30,5 +32,5 @@ const userMiddleware = (req, res, next) => {
 };
 
 module.exports = {
-    userMiddleware
+    userMiddleware,
 };
