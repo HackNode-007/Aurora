@@ -2,28 +2,26 @@ const express = require("express");
 const responseRouter = express.Router();
 const { responseModel, reportModel, userModel } = require("../db");
 const mongoose = require("mongoose");
+const {
+    createResponseSchema
+} = require("../utils/ZodObjects")
 
 responseRouter.post("/", async (req, res) => {
     try {
-        const { reportId, userId, response, imageUrls } = req.body;
+        const validationResult = createResponseSchema.safeParse(req.body);
 
-        if (!reportId || !userId || !response || !imageUrls) {
+        if (!validationResult.success) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Missing required fields: reportId, userId, response, imageUrls",
+                message: "Validation failed",
+                errors: validationResult.error.issues.map(issue => ({
+                    field: issue.path.join('.'),
+                    message: issue.message
+                }))
             });
         }
 
-        if (
-            !mongoose.Types.ObjectId.isValid(reportId) ||
-            !mongoose.Types.ObjectId.isValid(userId)
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid reportId or userId format",
-            });
-        }
+        const { reportId, userId, response, imageUrls } = validationResult.data;
 
         const report = await reportModel.findById(reportId);
         if (!report) {
@@ -52,8 +50,7 @@ responseRouter.post("/", async (req, res) => {
         if (existingResponse) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "This report already has a response. Only one response per report is allowed.",
+                message: "This report already has a response. Only one response per report is allowed.",
             });
         }
 
@@ -74,6 +71,7 @@ responseRouter.post("/", async (req, res) => {
             message: "Response submitted successfully",
             data: savedResponse,
         });
+
     } catch (error) {
         console.error("Error creating response:", error);
         res.status(500).json({
@@ -84,10 +82,9 @@ responseRouter.post("/", async (req, res) => {
     }
 });
 
-responseRouter.get("/my/:userId", async (req, res) => {
+responseRouter.get("/my", async (req, res) => {
     try {
-        const userId = req.user.id;
-        const { status } = req.query;
+        const userId = req.user.userId;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({
@@ -97,9 +94,6 @@ responseRouter.get("/my/:userId", async (req, res) => {
         }
 
         let query = { userId };
-        if (status && ["pending", "accepted", "rejected"].includes(status)) {
-            query.status = status;
-        }
 
         const responses = await responseModel
             .find(query)
@@ -114,75 +108,9 @@ responseRouter.get("/my/:userId", async (req, res) => {
             message: "Responses retrieved successfully",
             data: responses,
         });
+
     } catch (error) {
         console.error("Error fetching user responses:", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error.message,
-        });
-    }
-});
-
-// ✅ Todo PUT /responses/:responseId/status - Update response status (accept/reject)
-responseRouter.put("/:responseId/status", async (req, res) => {
-    try {
-        const { responseId } = req.params;
-        const { status, userId } = req.body;
-
-        if (!mongoose.Types.ObjectId.isValid(responseId)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid responseId format",
-            });
-        }
-
-        if (!status || !["accepted", "rejected"].includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Status must be either "accepted" or "rejected"',
-            });
-        }
-
-        const response = await responseModel
-            .findById(responseId)
-            .populate("reportId");
-        if (!response) {
-            return res.status(404).json({
-                success: false,
-                message: "Response not found",
-            });
-        }
-
-        if (response.reportId.reportedBy.toString() !== userId) {
-            return res.status(403).json({
-                success: false,
-                message: "Unauthorized to update this response status",
-            });
-        }
-
-        response.status = status;
-        await response.save();
-
-        if (status === "accepted") {
-            await reportModel.findByIdAndUpdate(response.reportId._id, {
-                status: "resolved",
-                resolvedBy: response.userId,
-                resolvedOnDate: new Date(),
-            });
-        } else if (status === "rejected") {
-            await reportModel.findByIdAndUpdate(response.reportId._id, {
-                status: "open",
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: `Response ${status} successfully`,
-            data: response,
-        });
-    } catch (error) {
-        console.error("Error updating response status:", error);
         res.status(500).json({
             success: false,
             message: "Internal server error",

@@ -51,9 +51,65 @@ const createReportSchema = z.object({
         .or(z.null())
 });
 
+const createResponseSchema = z.object({
+    reportId: z
+        .string({
+            required_error: "Report ID is required",
+            invalid_type_error: "Report ID must be a string"
+        })
+        .min(1, "Report ID cannot be empty")
+        .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId format for reportId"),
+
+    userId: z
+        .string({
+            required_error: "User ID is required",
+            invalid_type_error: "User ID must be a string"
+        })
+        .min(1, "User ID cannot be empty")
+        .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId format for userId"),
+
+    response: z
+        .string({
+            required_error: "Response text is required",
+            invalid_type_error: "Response must be a string"
+        })
+        .min(10, "Response must be at least 10 characters long")
+        .max(2000, "Response cannot exceed 2000 characters")
+        .trim(),
+
+    imageUrls: z
+        .array(
+            z.string().url("Each image URL must be a valid URL")
+        )
+        .min(1, "At least one image URL is required")
+        .max(10, "Cannot upload more than 10 images")
+        .refine(
+            (urls) => urls.every(url => 
+                /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(url)
+            ),
+            {
+                message: "All URLs must point to valid image files (jpg, jpeg, png, gif, webp)"
+            }
+        )
+});
+
+const getMyResponsesQuerySchema = z.object({
+    status: z
+        .enum(['pending', 'accepted', 'rejected'])
+        .optional()
+});
+
+module.exports = {
+    createResponseSchema,
+    updateResponseStatusSchema,
+    getMyResponsesQuerySchema
+};
+
 module.exports = {
     registerObject,
     loginObject,
     updateUserObject,
-    createReportSchema
+    createReportSchema,
+    createResponseSchema,
+    getMyResponsesQuerySchema
 }

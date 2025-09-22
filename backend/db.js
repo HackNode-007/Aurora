@@ -1,5 +1,6 @@
 const { Schema, default: mongoose } = require("mongoose");
 const ObjectId = Schema.Types.ObjectId;
+
 const users = new Schema(
     {
         email: {
@@ -27,6 +28,23 @@ const users = new Schema(
         walletAddress: {
             type: String,
             unique: true,
+            sparse: true,
+        },
+        walletVerified: {
+            type: Boolean,
+            default: false,
+        },
+        walletConnectedAt: {
+            type: Date,
+            required: false,
+        },
+        pendingWalletVerification: {
+            type: Schema.Types.Mixed,
+            required: false,
+        },
+        pendingMessageSigning: {
+            type: Schema.Types.Mixed,
+            required: false,
         },
         location: {
             type: String,
@@ -109,6 +127,8 @@ const report = new Schema({
         type: Number,
         default: 0,
     },
+}, {
+    timestamps: true,
 });
 
 const upvote = new Schema({
@@ -120,6 +140,8 @@ const upvote = new Schema({
         type: ObjectId,
         required: true,
     },
+}, {
+    timestamps: true,
 });
 
 const comment = new Schema({
@@ -151,6 +173,8 @@ const comment = new Schema({
         type: ObjectId,
         default: null,
     },
+}, {
+    timestamps: true,
 });
 
 const response = new Schema(
@@ -182,15 +206,126 @@ const response = new Schema(
     },
 );
 
+const transaction = new Schema(
+    {
+        userId: {
+            type: ObjectId,
+            required: true,
+            ref: 'users'
+        },
+        type: {
+            type: String,
+            required: true,
+            enum: [
+                'payout',
+                'donation_sent', 
+                'donation_received',
+                'reward_received',
+                'penalty_deducted',
+                'bonus_added',
+                'refund',
+                'wallet_connected',
+                'wallet_disconnected',
+                'message_signed'
+            ]
+        },
+        amount: {
+            type: Schema.Types.Decimal128,
+            required: true,
+            min: 0
+        },
+        status: {
+            type: String,
+            required: true,
+            enum: ['pending', 'processing', 'completed', 'failed', 'cancelled'],
+            default: 'pending'
+        },
+        fromAddress: {
+            type: String,
+            required: false
+        },
+        toAddress: {
+            type: String,
+            required: false
+        },
+        txHash: {
+            type: String,
+            unique: true,
+            sparse: true
+        },
+        blockNumber: {
+            type: Number,
+            required: false
+        },
+        gasUsed: {
+            type: Number,
+            required: false
+        },
+        gasPrice: {
+            type: Schema.Types.Decimal128,
+            required: false
+        },
+        error: {
+            type: String,
+            required: false
+        },
+        retryCount: {
+            type: Number,
+            default: 0
+        },
+        maxRetries: {
+            type: Number,
+            default: 3
+        },
+        
+        initiatedAt: {
+            type: Date,
+            default: Date.now
+        },
+        processedAt: {
+            type: Date,
+            required: false
+        },
+        completedAt: {
+            type: Date,
+            required: false
+        },
+        failedAt: {
+            type: Date,
+            required: false
+        },
+        metadata: {
+            type: Schema.Types.Mixed,
+            default: {}
+        },
+        relatedReportId: {
+            type: ObjectId,
+            ref: 'reports',
+            required: false
+        },
+        relatedResponseId: {
+            type: ObjectId,
+            ref: 'responses',
+            required: false
+        }
+    },
+    {
+        timestamps: true,
+    }
+);
+
 const userModel = mongoose.model("users", users);
 const reportModel = mongoose.model("reports", report);
 const responseModel = mongoose.model("responses", response);
 const upvoteModel = mongoose.model("upvotes", upvote);
 const commentModel = mongoose.model("comments", comment);
+const transactionModel = mongoose.model("transactions", transaction);
+
 module.exports = {
     userModel,
     reportModel,
     responseModel,
     upvoteModel,
     commentModel,
+    transactionModel,
 };
