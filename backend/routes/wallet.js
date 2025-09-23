@@ -3,6 +3,16 @@ const {userModel, transactionModel} = require("../db");
 const {PublicKey} = require("@solana/web3.js");
 const walletRouter = new Router();
 
+const lamportsToSol = (lamports) => lamports / 1000000000;
+const isValidSolanaAddress = (address) => {
+    try {
+        new PublicKey(address);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 walletRouter.post("/generate-message", async (req, res) => {
   const { userId } = req.user;
   const { walletAddress } = req.body;
@@ -143,7 +153,7 @@ walletRouter.post("/verify-signature", async (req, res) => {
       });
     }
 
-    const existingUser = await userModel.findOne({ 
+    const existingUser = await userModel.findOne({
       walletAddress: walletAddress,
       _id: { $ne: userId }
     });
@@ -156,7 +166,7 @@ walletRouter.post("/verify-signature", async (req, res) => {
 
     const updatedUser = await userModel.findByIdAndUpdate(
       userId,
-      { 
+      {
         walletAddress: walletAddress,
         walletVerified: true,
         walletConnectedAt: new Date(),
@@ -280,8 +290,8 @@ walletRouter.post("/disconnect", async (req, res) => {
 
     const updatedUser = await userModel.findByIdAndUpdate(
       userId,
-      { 
-        $unset: { 
+      {
+        $unset: {
           walletAddress: 1,
           walletVerified: 1,
           walletConnectedAt: 1,

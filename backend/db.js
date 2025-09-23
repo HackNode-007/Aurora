@@ -27,7 +27,7 @@ const users = new Schema(
         },
         walletAddress: {
             type: String,
-            unique: true,
+            unique: false,
             sparse: true,
         },
         walletVerified: {
@@ -48,7 +48,7 @@ const users = new Schema(
         },
         location: {
             type: String,
-            required: true,
+            required: false,//Todo: change this to true after testing
             default: null,
         },
         balance: {
@@ -218,7 +218,7 @@ const transaction = new Schema(
             required: true,
             enum: [
                 'payout',
-                'donation_sent', 
+                'donation_sent',
                 'donation_received',
                 'reward_received',
                 'penalty_deducted',
@@ -277,7 +277,7 @@ const transaction = new Schema(
             type: Number,
             default: 3
         },
-        
+
         initiatedAt: {
             type: Date,
             default: Date.now

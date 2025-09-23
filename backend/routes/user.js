@@ -3,19 +3,22 @@ const userRouter = express.Router();
 const reportRouter = require("./report");
 const { userModel } = require("../db");
 const { paymentRouter } = require("./payment");
+const z = require('zod')
+const {updateUserObject} = require("../utils/ZodObjects");
 
 userRouter.get("/getDetails", async (req, res) => {
     const { userId } = req.user;
     if (!userId) {
         return res.status(404).json({
-            messgae: "userId not found",
+            message: "userId not found",
         });
     }
     try {
         const user = await userModel.findById(userId);
+
         if (!user) {
             return res.status(405).json({
-                messgae: "user not found",
+                message: "user not found",
             });
         }
 
@@ -31,7 +34,7 @@ userRouter.get("/getDetails", async (req, res) => {
         });
     } catch (e) {
         return res.status(500).json({
-            messgae: "Server error plesae try again later",
+            message: "Server error please try again later",
             error: e.message,
         });
     }
@@ -41,14 +44,14 @@ userRouter.delete("/delete", async (req, res) => {
     const { userId } = req.user;
     if (!userId) {
         return res.status(404).json({
-            messgae: "userId not found",
+            message: "userId not found",
         });
     }
     try {
         const user = await userModel.findByIdAndDelete(userId);
         if (!user) {
             return res.status(405).json({
-                messgae: "user not found",
+                message: "user not found",
             });
         }
 
@@ -57,7 +60,7 @@ userRouter.delete("/delete", async (req, res) => {
         });
     } catch (e) {
         return res.status(500).json({
-            messgae: "Server error plesae try again later",
+            message: "Server error please try again later",
             error: e.message,
         });
     }

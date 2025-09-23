@@ -5,8 +5,9 @@ const {
     upvoteModel,
     commentModel,
     responseModel,
-} = require("../path/to/your/models");
+} = require("../db");
 const { createReportSchema } = require("../utils/ZodObjects");
+const responseRouter = require("./response");
 const reportRouter = express.Router();
 
 reportRouter.get("/all", async (req, res) => {
@@ -131,29 +132,10 @@ reportRouter.get("/myReports", async (req, res) => {
     }
 
     try {
-        const { status } = req.query;
 
-        let query = { reportedBy: userId };
-
-        if (status) {
-            const validStatuses = [
-                "pending",
-                "accepted",
-                "open",
-                "responded",
-                "resolved",
-                "rejected",
-            ];
-            if (!validStatuses.includes(status)) {
-                return res.status(400).json({
-                    message:
-                        "Invalid status. Valid options: pending, accepted, open, responded, resolved, rejected",
-                });
-            }
-            query.status = status;
-        }
-
-        const reports = await reportModel.find(query).sort({ createdAt: -1 });
+        const reports = await reportModel.find({
+            reportedBy: userId
+        }).sort({ createdAt: -1 });
 
         const formattedReports = await Promise.all(
             reports.map(async (report) => {
@@ -236,7 +218,7 @@ reportRouter.delete("/deleteReport/:id", async (req, res) => {
 
         if (report.status !== "pending") {
             return res.status(400).json({
-                message: "Cannot delete report",
+                message: "Cannot delete report as our service has undertaken this report for validation",
             });
         }
 
@@ -259,8 +241,6 @@ reportRouter.delete("/deleteReport/:id", async (req, res) => {
 
 reportRouter.use("/response", responseRouter);
 
-//Todo: Add more routes for upvoting, commenting , reply to comment to reports
-// Upvote a report (toggle functionality)
 reportRouter.post("/:id/upvote", async (req, res) => {
     const userId = req.user.userId;
     const reportId = req.params.id;
@@ -317,8 +297,7 @@ reportRouter.post("/:id/upvote", async (req, res) => {
     }
 });
 
-// Add comment to a report
-reportRouter.post("/:id/comments", async (req, res) => {
+reportRouter.post("/:id/comment", async (req, res) => {
     const userId = req.user.userId;
     const reportId = req.params.id;
     const { comment } = req.body;
@@ -373,7 +352,6 @@ reportRouter.post("/:id/comments", async (req, res) => {
     }
 });
 
-// Get all comments for a report
 reportRouter.get("/:id/comments", async (req, res) => {
     const reportId = req.params.id;
 
@@ -419,39 +397,48 @@ reportRouter.get("/:id/comments", async (req, res) => {
     }
 });
 
-// Get upvote status and count for a report
-reportRouter.get("/:id/upvotes", async (req, res) => {
+reportRouter.post("/comment/reply", async (req, res) => {
     const userId = req.user.userId;
-    const reportId = req.params.id;
+    const commentId = req.body.commentId;
+    const {reply} = req.body;
 
     if (!userId) {
-        return res.status(401).json({ message: "Authentication required" });
+        return res.status(401).json({message: "User not authenticated"});
     }
 
-    if (!reportId) {
-        return res.status(400).json({ message: "Report ID is required" });
+    if (!commentId) {
+        return res.status(400).json({message: "Comment ID is required"});
+    }
+
+    if (!reply || reply.trim() === "") {
+        return res.status(400).json({message: "Reply is required"});
     }
 
     try {
-        const report = await reportModel.findById(reportId);
-        if (!report) {
-            return res.status(404).json({ message: "Report not found" });
+        const comment = await commentModel.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({message: "Comment not found"});
         }
 
-        const upvoteCount = await upvoteModel.countDocuments({ reportId });
-        const userUpvoted = await upvoteModel.exists({ reportId, userId });
+        if (comment.isReplied) {
+            return res.status(400).json({
+                message: "This comment already has a reply. You can edit the existing reply instead."
+            });
+        }
 
-        return res.status(200).json({
-            upvoted: !!userUpvoted,
-            upvotes: upvoteCount
-        });
+        //Todo
 
-    } catch (error) {
-        console.error("Upvote status error:", error);
+        return res.json({
+            message: "successfully added comment",
+            reply
+        })
+    } catch (e) {
+        console.error("reply error:", e);
         return res.status(500).json({
-            message: "Server error occurred while retrieving upvote status",
-            error: error.message
+            message: "Server error occurred while saving reply",
+            error: e.message
         });
     }
 });
+
 module.exports = reportRouter;

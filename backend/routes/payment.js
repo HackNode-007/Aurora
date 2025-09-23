@@ -4,7 +4,7 @@ const { userModel, transactionModel } = require("../db")
 const { walletRouter } = require("./wallet")
 const paymentRouter = express.Router();
 
-const connection = new Connection(process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com");
+const connection = new Connection(process.env.SOLANA_RPC_URL || "https://api.devnet-beta.solana.com");
 
 const serverWallet = Keypair.fromSecretKey(
   new Uint8Array(JSON.parse(process.env.SOLANA_PRIVATE_KEY || "[]"))
@@ -186,7 +186,7 @@ async function processPayoutAsync(transactionId, userId, amount, toAddress) {
     });
 
     await userModel.findByIdAndUpdate(userId, {
-      $inc: { 
+      $inc: {
         balance: -amount,
         lockedBalance: -amount
       }

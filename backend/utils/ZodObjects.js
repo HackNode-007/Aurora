@@ -38,7 +38,7 @@ const createReportSchema = z.object({
         .min(1, "Location is required")
         .max(300, "Location must be less than 300 characters")
         .trim(),
-    imageUrls: z.array(z.string().url("Invalid image URL"))
+    imageUrls: z.array(z.string())
         .min(1, "At least one image is required")
         .max(5, "Maximum 5 images allowed"),
     urgency: z.enum(['low', 'medium', 'high', 'critical'], {
@@ -84,7 +84,7 @@ const createResponseSchema = z.object({
         .min(1, "At least one image URL is required")
         .max(10, "Cannot upload more than 10 images")
         .refine(
-            (urls) => urls.every(url => 
+            (urls) => urls.every(url =>
                 /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(url)
             ),
             {
@@ -101,7 +101,7 @@ const getMyResponsesQuerySchema = z.object({
 
 module.exports = {
     createResponseSchema,
-    updateResponseStatusSchema,
+    // updateResponseStatusSchema,
     getMyResponsesQuerySchema
 };
 

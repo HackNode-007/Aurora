@@ -14,7 +14,7 @@ const port = process.env.PORT
 
 app.use('/api/auth',authRouter)
 app.use(userMiddleware)
-app.use('user',userRouter)
+app.use('/api/user',userRouter)
 
 const main = async () => {
     await mongoose.connect(mongoUri).then(() => {
