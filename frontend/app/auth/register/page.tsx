@@ -1,7 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { InputField } from '../../../components/ui/InputField';
+import { Button } from '../../../components/ui/Button';
+import { useLocationDetection } from '../../../components/hooks/useLocationDetection';
 
 interface RegisterFormData {
     email: string;
@@ -14,8 +18,9 @@ interface RegisterFormData {
     city: string;
 }
 
-export default function RegisterPage() {
+const AuroraRegister: React.FC = () => {
     const router = useRouter();
+    const { locationData, isDetecting: isDetectingLocation, error: locationError } = useLocationDetection();
 
     const [formData, setFormData] = useState<RegisterFormData>({
         email: "",
@@ -31,33 +36,15 @@ export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    const [isDetectingLocation, setIsDetectingLocation] = useState(true);
-    const [locationError, setLocationError] = useState("");
-
-    useEffect(() => {
-        const detectLocation = async () => {
-            try {
-                setIsDetectingLocation(true);
-
-                const ipResponse = await axios.get("https://ipapi.co/json/");
-                const { city, region, country_name } = ipResponse.data;
-
-                setFormData((prev) => ({
-                    ...prev,
-                    location: `${city}, ${region}, ${country_name}`,
-                    country: country_name,
-                    region: region,
-                    city: city,
-                }));
-            } catch (err) {
-                setLocationError("Could not detect location");
-            } finally {
-                setIsDetectingLocation(false);
-            }
-        };
-
-        detectLocation();
-    }, []);
+    
+    useState(() => {
+        if (locationData.location) {
+            setFormData(prev => ({
+                ...prev,
+                ...locationData
+            }));
+        }
+    });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -80,11 +67,10 @@ export default function RegisterPage() {
 
         try {
             await axios.post("/api/auth/register", formData);
-
             setSuccessMessage("Registration successful! Redirecting to login...");
 
             setTimeout(() => {
-                router.push("/auth/login"); // ✅ redirect to login page
+                router.push("/auth/login");
             }, 2000);
         } catch (err: any) {
             if (err.response) {
@@ -109,132 +95,123 @@ export default function RegisterPage() {
         }
     };
 
+    const handleLoginRedirect = () => {
+        router.push("/auth/login");
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
             <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-lg shadow-md">
-                <h2 className="text-center text-3xl font-bold text-gray-900">
-                    Create Account
-                </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
-                    Join Aurora to access your personalized dashboard
-                </p>
+                <div className="text-center">
+                    <h1 className="text-3xl text-blue-600 font-semibold mb-2">Aurora</h1>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Create Account to access your dashboard
+                    </p>
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-6">
                     {error && (
-                        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                        <div className="text-red-600 text-sm text-center mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
                             {error}
                         </div>
                     )}
                     {successMessage && (
-                        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
+                        <div className="text-green-600 text-sm text-center mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
                             {successMessage}
                         </div>
                     )}
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            name="email"
-                            required
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md focus:ring-black focus:border-black"
-                            placeholder="Enter your email"
-                        />
-                    </div>
+                    <InputField
+                        label="Email"
+                        type="email"
+                        id="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Enter your email"
+                        required
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            name="username"
-                            required
-                            value={formData.username}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md focus:ring-black focus:border-black"
-                            placeholder="Choose a username"
-                        />
-                    </div>
+                    <InputField
+                        label="Username"
+                        type="text"
+                        id="username"
+                        value={formData.username}
+                        onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                        placeholder="Choose a username"
+                        required
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Phone
-                        </label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            required
-                            value={formData.phone}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md focus:ring-black focus:border-black"
-                            placeholder="Enter your phone number"
-                        />
-                    </div>
+                    <InputField
+                        label="Phone"
+                        type="tel"
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="Enter your phone number"
+                        required
+                    />
 
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Location{" "}
+                    <div className="mb-5">
+                        <div className="flex justify-between items-center mb-2">
+                            <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                                Location
+                            </label>
                             {isDetectingLocation && (
-                                <span className="text-xs text-gray-500 ml-2">Detecting...</span>
+                                <span className="text-xs text-gray-500">Detecting...</span>
                             )}
-                        </label>
+                        </div>
                         <input
                             type="text"
+                            id="location"
                             name="location"
-                            readOnly
                             value={formData.location}
-                            className="w-full px-3 py-2 border rounded-md bg-gray-100 text-gray-700 cursor-not-allowed"
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-gray-100 cursor-not-allowed text-gray-700 focus:outline-none"
+                            placeholder="Location will be detected automatically"
+                            readOnly
                         />
                         {locationError && (
-                            <p className="text-xs text-red-600">{locationError}</p>
+                            <p className="text-xs text-red-600 mt-1">{locationError}</p>
                         )}
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            name="password"
-                            required
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md focus:ring-black focus:border-black"
-                            placeholder="Create a password"
-                        />
-                    </div>
+                    <InputField
+                        label="Password"
+                        type="password"
+                        id="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        placeholder="Create a password"
+                        required
+                    />
 
-                    <button
+                    <Button
                         type="submit"
                         disabled={isLoading || isDetectingLocation}
-                        className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 disabled:opacity-50"
+                        isLoading={isLoading}
+                        className="bg-black hover:bg-gray-800 text-white py-3 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50"
                     >
                         {isLoading
                             ? "Creating account..."
                             : isDetectingLocation
                                 ? "Detecting location..."
-                                : "Sign Up"}
-                    </button>
+                                : "Register"}
+                    </Button>
 
                     <p className="text-center text-sm text-gray-600">
                         Already have an account?{" "}
                         <button
                             type="button"
-                            onClick={() => router.push("/auth/login")}
-                            className="font-medium text-black hover:text-gray-800"
+                            onClick={handleLoginRedirect}
+                            className="font-medium text-black hover:text-gray-800 hover:underline"
                         >
-                            Sign in
+                            Login
                         </button>
                     </p>
                 </form>
             </div>
         </div>
     );
-}
+};
+
+export default AuroraRegister;

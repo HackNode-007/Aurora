@@ -3,34 +3,47 @@ import React from 'react';
 interface InputFieldProps {
   label: string;
   type: string;
-  id: string;
+  name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder: string;
   required?: boolean;
+  readOnly?: boolean;
+  className?: string;
+  rightElement?: React.ReactNode;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
   label,
   type,
-  id,
+  name,
   value,
   onChange,
   placeholder,
-  required = false
+  required = false,
+  readOnly = false,
+  className = '',
+  rightElement
 }) => (
   <div className="mb-5">
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
-      {label}
-    </label>
+    <div className="flex justify-between items-center mb-2">
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      {rightElement}
+    </div>
     <input
       type={type}
-      id={id}
+      id={name}
+      name={name}
       value={value}
       onChange={onChange}
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+        readOnly ? 'bg-gray-100 cursor-not-allowed text-gray-700' : ''
+      } ${className}`}
       placeholder={placeholder}
       required={required}
+      readOnly={readOnly}
     />
   </div>
 );

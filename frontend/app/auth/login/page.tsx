@@ -56,16 +56,18 @@ const AuroraLogin: React.FC = () => {
     }
   };
 
+  const handleLoginRedirect = () => {
+      router.push("/auth/register");
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-5">
       <div className="bg-white rounded-xl shadow-lg p-10 w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl text-blue-600 font-semibold mb-2">Aurora</h1>
           <p className="text-gray-500 text-sm">Login to continue to your dashboard</p>
         </div>
 
-        {/* Login Form */}
         <form onSubmit={handleLogin} className="mb-6">
           <InputField
             label="Email"
@@ -98,14 +100,19 @@ const AuroraLogin: React.FC = () => {
           </Button>
         </form>
 
-        {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
-          Don't have an account?{' '}
-          <a href="/register" className="text-blue-600 font-medium hover:underline">
-            Register
-          </a>
-        </div>
+        <p className="text-center text-sm text-gray-600">
+            Don't have an account?{" "}
+            <button
+                type="button"
+                onClick={handleLoginRedirect}
+                className="font-medium text-black hover:text-gray-800 hover:underline"
+            >
+                Login
+            </button>
+        </p>
+        
       </div>
+      
     </div>
   );
 };
