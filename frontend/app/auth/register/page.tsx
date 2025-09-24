@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { InputField } from '../../../components/ui/InputField';
-import { Button } from '../../../components/ui/Button';
-import { useLocationDetection } from '../../../components/hooks/useLocationDetection';
+import { InputField } from '@/components/ui/InputField';
+import { Button } from '@/components/ui/Button';
+import { useLocationDetection } from '@/components/hooks/useLocationDetection';
+import {NextError} from "next/dist/lib/is-error";
 
 interface RegisterFormData {
     email: string;
@@ -27,7 +28,7 @@ const AuroraRegister: React.FC = () => {
         password: "",
         username: "",
         phone: "",
-        location: "",
+        location: "Mohair",
         country: "",
         region: "",
         city: "",
@@ -66,13 +67,14 @@ const AuroraRegister: React.FC = () => {
         setSuccessMessage("");
 
         try {
-            await axios.post("/api/auth/register", formData);
+            console.log("control reach here")
+            await axios.post(`${process.env.BASE_URL}/api/auth/register`, formData);
             setSuccessMessage("Registration successful! Redirecting to login...");
 
             setTimeout(() => {
                 router.push("/auth/login");
             }, 2000);
-        } catch (err: any) {
+        } catch (err: NextError) {
             if (err.response) {
                 switch (err.response.status) {
                     case 400:

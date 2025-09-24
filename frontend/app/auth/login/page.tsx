@@ -2,15 +2,16 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
-import { InputField } from '../../../components/ui/InputField';
-import { Button } from '../../../components/ui/Button';
-import router from 'next/router';
+import { InputField } from '@/components/ui/InputField';
+import { Button } from '@/components/ui/Button';
+import {useRouter} from 'next/navigation'
 
 const AuroraLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,19 +19,20 @@ const AuroraLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await axios.post('/api/auth/login', {
-        email,
-        password
-      });
+        const response = await axios.post(`${process.env.BASE_URL}/api/auth/login`, {
+            email,
+            password
+        });
 
-      console.log('Login successful:', response.data);
+        console.log('Login successful:', response.data);
 
-      document.cookie = `authToken=${response.data.token}; path=/; secure; samesite=strict`;
+        //Todo
+        // document.cookie = `authToken=${response.data.token}; path=/; secure; samesite=strict`;
 
-      router.push('/dashboard');
-      alert('Login successful! Redirecting to dashboard...');
+        await router.push('/user/dashboard');
+        alert('Login successful! Redirecting to dashboard...');
 
-    } catch (err: any) {
+    }catch (err) {
       if (err.response) {
         switch (err.response.status) {
           case 400:
@@ -56,8 +58,8 @@ const AuroraLogin: React.FC = () => {
     }
   };
 
-  const handleLoginRedirect = () => {
-      router.push("/auth/register");
+  const handleRegisterRedirect = () => {
+      router.push("/auth/register")
   };
 
   return (
@@ -104,10 +106,10 @@ const AuroraLogin: React.FC = () => {
             Don't have an account?{" "}
             <button
                 type="button"
-                onClick={handleLoginRedirect}
+                onClick={handleRegisterRedirect}
                 className="font-medium text-black hover:text-gray-800 hover:underline"
             >
-                Login
+                Register
             </button>
         </p>
         
